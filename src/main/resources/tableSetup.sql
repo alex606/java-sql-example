@@ -1,0 +1,6 @@
+CREATE DATABASE MY_DATABASE
+
+CREATE TABLE dbo.PERSON_TABLE(
+    id int not null IDENTITY PRIMARY KEY,
+    name VARCHAR(255) not null
+)
