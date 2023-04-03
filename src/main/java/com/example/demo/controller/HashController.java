@@ -20,7 +20,7 @@ public class HashController {
     @GetMapping(value = "/hash")
     public ResponseEntity<String> getHash() throws NoSuchAlgorithmException, UnsupportedEncodingException {
 
-        String message = "Alexander Wu";
+        String message = "This is Your First and Last Name";
         String sha256Algorithm = "SHA-256";
         String sha512Algorithm = "SHA-512";
 
@@ -143,11 +143,32 @@ public class HashController {
         } else {
             System.out.println("No collision found.");
         }
-        String m1 = "MD5 Hash of message 1: " + Arrays.toString(md5_1);
-        String m2 = "MD5 Hash of message 2: " + Arrays.toString(md5_2);
 
-        String s1 = "SHA 256 Hash of message 1: " + Arrays.toString(sha256_1);
-        String s2 = "SHA 256 Hash of message 2: " + Arrays.toString(sha256_2);
+        StringBuilder hexStringmd5_1 = new StringBuilder();
+        StringBuilder hexStringmd5_2 = new StringBuilder();
+
+        for (byte b : md5_1) {
+            hexStringmd5_1.append(Integer.toHexString(0xff & b));
+        }
+        for (byte b : md5_2) {
+            hexStringmd5_2.append(Integer.toHexString(0xff & b));
+        }
+
+        StringBuilder hexString256 = new StringBuilder();
+        StringBuilder hexString512 = new StringBuilder();
+
+        for (byte b : sha256_1) {
+            hexString256.append(Integer.toHexString(0xff & b));
+        }
+        for (byte b : sha256_2) {
+            hexString512.append(Integer.toHexString(0xff & b));
+        }
+
+        String m1 = "MD5 Hash of message 1: " + hexStringmd5_1;
+        String m2 = "MD5 Hash of message 2: " + hexStringmd5_2;
+
+        String s1 = "SHA 256 Hash of message 1: " + hexString256;
+        String s2 = "SHA 256 Hash of message 2: " + hexString512;
         StringBuilder sb = new StringBuilder()
                 .append(m1)
                 .append("<br />")
