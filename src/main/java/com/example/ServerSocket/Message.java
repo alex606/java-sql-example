@@ -1,4 +1,4 @@
-package com.example.demo;
+package com.example.ServerSocket;
 
 
 import java.io.Serializable;

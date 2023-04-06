@@ -1,6 +1,6 @@
-package com.example.demo.repositories;
+package com.example.ServerSocket.repositories;
 
-import com.example.demo.models.Person;
+import com.example.ServerSocket.models.Person;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
