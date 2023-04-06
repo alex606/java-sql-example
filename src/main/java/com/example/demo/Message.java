@@ -1,14 +1,23 @@
 package com.example.demo;
 
 
-public class Message {
-    public int id;
-    public String name;
-    Message() {
+import java.io.Serializable;
+import java.util.List;
+
+public class Message implements Serializable {
+    private int id;
+    private String type;
+    private String data;
+    private List<String> collection;
+
+    public Message() {
     }
-    Message(int id, String name) {
+
+    public Message(int id, String type, String data, List<String> collection) {
         this.id = id;
-        this.name = name;
+        this.type = type;
+        this.data = data;
+        this.collection = collection;
     }
 
     public int getId() {
@@ -19,11 +28,27 @@ public class Message {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getType() {
+        return type;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getData() {
+        return data;
+    }
+
+    public void setData(String data) {
+        this.data = data;
+    }
+
+    public List<String> getCollection() {
+        return collection;
+    }
+
+    public void setCollection(List<String> collection) {
+        this.collection = collection;
     }
 }

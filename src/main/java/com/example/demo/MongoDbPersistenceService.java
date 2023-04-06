@@ -3,7 +3,9 @@ package com.example.demo;
 import com.mongodb.client.*;
 import org.bson.Document;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 public class MongoDbPersistenceService {
@@ -42,18 +44,31 @@ public class MongoDbPersistenceService {
         return getLibraryCollection().find(document).first();
     }
 
-    public void checkOutItem(Document filter, String customer) {
+    public List<String> getAllItems() {
+        MongoCursor<Document> cursor = getLibraryCollection().find().iterator();
+        List<String> items = new ArrayList<>();
+        try {
+            while (cursor.hasNext()) {
+                items.add(cursor.next().toJson());
+            }
+        } finally {
+            cursor.close();
+        }
+        return items;
+    }
+
+    public List<String> checkOutItem(Document filter, String customer) {
 
         Document documentToFind = getLibraryCollection().find(filter).first();
 
         if (documentToFind == null) {
             System.out.println("The library item does not exist");
-            return;
+            return getAllItems();
         }
 
         if (documentToFind.containsKey(isCheckedOut) && documentToFind.getBoolean(isCheckedOut)) {
             System.out.println("The item is currently checked out by: " + documentToFind.getString(checkedOutBy));
-            return;
+            return getAllItems();
         }
 
         Document update = new Document("$set", new Document()
@@ -62,26 +77,27 @@ public class MongoDbPersistenceService {
                 .append(lastCheckoutDate, new Date())
         );
         getLibraryCollection().updateOne(documentToFind, update);
+        return getAllItems();
     }
 
-    public void checkInItem(Document filter, String libraryCustomer) {
+    public List<String> checkInItem(Document filter, String libraryCustomer) {
 
         Document documentToFind = getLibraryCollection().find(filter).first();
 
         if (documentToFind == null) {
             System.out.println("The library item does not exist");
-            return;
+            return getAllItems();
         }
 
         if (documentToFind.containsKey(isCheckedOut) && !documentToFind.getBoolean(isCheckedOut)) {
             System.out.println("The item is currently already checked in");
-            return;
+            return getAllItems();
         }
 
         if (documentToFind.containsKey(checkedOutBy)
                 && !Objects.equals(documentToFind.getString(checkedOutBy), libraryCustomer)) {
             System.out.println("The item is currently checked out by a different customer");
-            return;
+            return getAllItems();
         }
 
         Document update = new Document()
@@ -89,11 +105,10 @@ public class MongoDbPersistenceService {
                 .append("$unset", new Document(checkedOutBy, libraryCustomer));
 
         getLibraryCollection().updateOne(documentToFind, update);
+        return getAllItems();
     }
 
     private MongoCollection<Document> getLibraryCollection() {
         return this.mongoDatabase.getCollection("libraryItems");
     }
-
-
 }
