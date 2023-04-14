@@ -9,6 +9,8 @@ public class Message implements Serializable {
     private String type;
     private String data;
     private List<String> collection;
+    private String errorMessage;
+
 
     public Message() {
     }
@@ -50,5 +52,13 @@ public class Message implements Serializable {
 
     public void setCollection(List<String> collection) {
         this.collection = collection;
+    }
+
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+    public void setErrorMessage(String errorMessage) {
+        this.errorMessage = errorMessage;
     }
 }

@@ -21,7 +21,7 @@ public class Server {
 			System.out.println("Received connection request from a client.");
 
 			PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-			out.println("Connection request accepted by server...");
+			out.println("Connection request accepted by server... This is on Alex's machine at " + serverSocket.getInetAddress().getHostAddress());
 
 			Thread clientThread = new Thread(new ClientHandler(clientSocket));
 			clientThread.start();

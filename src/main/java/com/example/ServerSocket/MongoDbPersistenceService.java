@@ -12,6 +12,7 @@ public class MongoDbPersistenceService {
 
     private final MongoClient mongoClient;
     private final MongoDatabase mongoDatabase;
+    private final MongoDatabase users;
 
     private final String isCheckedOut = "isCheckedOut";
     private final String checkedOutBy = "checkedOutBy";
@@ -22,18 +23,7 @@ public class MongoDbPersistenceService {
                 "mongodb+srv://alexwu606:" + System.getenv("dbPassword") + "@cluster0.oqyciog.mongodb.net/?retryWrites=true&w=majority"
         );
         this.mongoDatabase = mongoClient.getDatabase("LIBRARY_DATABASE");
-    }
-
-    public void insertItem() {
-        Document document1 = new Document("id", 1)
-                .append("itemType", "book")
-                .append("title", "Green Eggs and ham")
-                .append("author", "Dr. Suess")
-                .append("pages", 17)
-                .append("summaryDescription", "A Dr. Suess Classic");
-
-        MongoCollection<Document> mongoCollection = mongoDatabase.getCollection("libraryItems");
-        mongoCollection.insertOne(document1);
+        this.users = mongoClient.getDatabase("LIBRARY_USERS");
     }
 
     public void closeConnection() {
@@ -57,16 +47,18 @@ public class MongoDbPersistenceService {
         return items;
     }
 
-    public List<String> checkOutItem(Document filter, String customer) {
+    public List<String> checkOutItem(Document filter, String customer, Message message) {
 
         Document documentToFind = getLibraryCollection().find(filter).first();
 
         if (documentToFind == null) {
+            message.setErrorMessage("The library item does not exist");
             System.out.println("The library item does not exist");
             return getAllItems();
         }
 
         if (documentToFind.containsKey(isCheckedOut) && documentToFind.getBoolean(isCheckedOut)) {
+            message.setErrorMessage("The item is currently checked out by: " + documentToFind.getString(checkedOutBy));
             System.out.println("The item is currently checked out by: " + documentToFind.getString(checkedOutBy));
             return getAllItems();
         }
@@ -77,19 +69,34 @@ public class MongoDbPersistenceService {
                 .append(lastCheckoutDate, new Date())
         );
         getLibraryCollection().updateOne(documentToFind, update);
+
+        Document user = getLibraryUsers().find(new Document("name", customer)).first();
+        if (user == null) {
+            getLibraryUsers().insertOne(new Document()
+                    .append("name", customer)
+                    .append("checkedOut", List.of(documentToFind.getString("title")))
+            );
+        } else {
+            Document updateUser = new Document(
+                    "$push", new Document("checkedOut", documentToFind.getString("title"))
+            );
+            getLibraryUsers().updateOne(user, updateUser);
+        }
         return getAllItems();
     }
 
-    public List<String> checkInItem(Document filter, String libraryCustomer) {
+    public List<String> checkInItem(Document filter, String libraryCustomer, Message message) {
 
         Document documentToFind = getLibraryCollection().find(filter).first();
 
         if (documentToFind == null) {
+            message.setErrorMessage("The library item does not exist");
             System.out.println("The library item does not exist");
             return getAllItems();
         }
 
         if (documentToFind.containsKey(isCheckedOut) && !documentToFind.getBoolean(isCheckedOut)) {
+            message.setErrorMessage("The item is currently already checked in");
             System.out.println("The item is currently already checked in");
             return getAllItems();
         }
@@ -105,10 +112,21 @@ public class MongoDbPersistenceService {
                 .append("$unset", new Document(checkedOutBy, libraryCustomer));
 
         getLibraryCollection().updateOne(documentToFind, update);
+
+        Document user = new Document("name", libraryCustomer);
+        Document updateUser = new Document(
+                "$pull", new Document("checkedOut", documentToFind.getString("title"))
+        );
+        getLibraryUsers().updateOne(user, updateUser);
+
         return getAllItems();
     }
 
     private MongoCollection<Document> getLibraryCollection() {
         return this.mongoDatabase.getCollection("libraryItems");
+    }
+
+    private MongoCollection<Document> getLibraryUsers() {
+        return this.users.getCollection("users");
     }
 }

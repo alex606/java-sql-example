@@ -37,11 +37,17 @@ class ClientHandler implements Runnable {
                     message.setCollection(items);
                     out.println(objectMapper.writeValueAsString(message));
                 } else if (Objects.equals(message.getType(), "CHECKOUT")) {
-                    items = mongoDbPersistenceService.checkOutItem(new Document("id", message.getId()), message.getData());
+                    items = mongoDbPersistenceService.checkOutItem(
+                            new Document("id", message.getId()), message.getData(),
+                            message
+                    );
                     message.setCollection(items);
                     out.println(objectMapper.writeValueAsString(message));
                 } else if (Objects.equals(message.getType(), "CHECKIN")) {
-                    items = mongoDbPersistenceService.checkInItem(new Document("id", message.getId()), message.getData());
+                    items = mongoDbPersistenceService.checkInItem(
+                            new Document("id", message.getId()), message.getData(),
+                            message
+                    );
                     message.setCollection(items);
                     out.println(objectMapper.writeValueAsString(message));
                 } else {
